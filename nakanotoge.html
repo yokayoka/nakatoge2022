@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maps for 2022 hazard in Nakanotoge Area</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.2/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
+  <script src="lib/L.TileLayer.BetterWMS.js"></script>
+  <script src="lib/proj4.js"></script>
+  <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+
+  <style>
+    body {padding: 0; margin: 0}
+    html, body, #mapDiv {height: 100%; width: 100%;}
+  </style>
+</head>
+<body>
+  <div id="mapDiv"></div>
+  <script>
+  var map = L.map('mapDiv',{crs:L.CRS.EPSG900913}).setView([36.37161430365654, 136.57230170021518], 14);
+  
+  var cyberjapanstd = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png', {
+  attribution: '<a href="http://maps.gsi.go.jp/development/ichiran.html" target="_blank">地理院タイル</a>',
+  zIndex: 100,
+  opacity: 0.7
+  }).addTo(map);
+  
+  var wmsLayer = L.tileLayer.wms('http://www.j-shis.bosai.go.jp/map/wms/landslide?', {
+      layers: 'L-V3-ALL',
+      opacity: 0.7,
+  }).addTo(map);
+  
+  var detailLayer = L.tileLayer.betterWms('https://gbank.gsj.jp/ows/seamlessgeology200k_b' ,{
+        layers: 'area',
+        format: 'image/png',
+        transparent : true,
+        opacity: 0.7,
+        zIndex: 2000,
+        attribution: '<a href="https://www.gsj.jp/license/index.html" target="_blank">GSJ, AIST</a>'
+      }).addTo(map);
+  
+      //ラベルの表示
+      var labelLayer = L.tileLayer.betterWms('https://gbank.gsj.jp/ows/seamlessgeology200k_b' ,{
+        layers: 'label',
+        format: 'image/png',
+        transparent : true,
+        opacity: 1.0,
+        zIndex: 1000,
+        attribution: '<a href="https://www.gsj.jp/license/index.html" target="_blank">GSJ, AIST</a>'
+      });
+  
+      //ラインの表示
+      var lineLayer = L.tileLayer.betterWms('https://gbank.gsj.jp/ows/seamlessgeology200k_b' ,{
+        layers: 'line',
+        format: 'image/png',
+        transparent : true,
+        opacity: 0.8,
+        zIndex: 3000,
+        attribution: '<a href="https://www.gsj.jp/license/index.html" target="_blank">GSJ, AIST</a>'
+      });
+  
+  var csmap = L.tileLayer('Nakanotoge_s/{z}/{x}/{y}.png', {
+          minZoom: 8,
+          maxZoom: 18,
+          opacity: 0.7
+      }).addTo(map);
+  
+  var GoogleMapSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+	  subdomains: ['mt0','mt1','mt2','mt3'],
+	  attribution: "<a href='https://developers.google.com/maps/documentation' target='_blank'>Google Map</a>",
+  });
+
+
+  var Layers = {
+  '地理院地図 (標準地図)': cyberjapanstd,
+  };
+  
+  // Overlay layers are grouped
+  var Overlays = {
+    '地質図 (基本版)': detailLayer,
+    'Google衛星写真':GoogleMapSatellite,
+    '地すべり': wmsLayer,
+    'CS立体図': csmap,
+    '地質図ライン': lineLayer,
+    '地質図ラベル': labelLayer
+  };
+  
+  //レイヤコントロールを表示
+  L.control.layers(Layers, Overlays, {collapsed: true }).addTo(map);
+  //スケールコントロールを表示（オプションはフィート単位を非表示）
+  L.control.scale({imperial: false}).addTo(map);
+  
+  </script>  
+</body>
+</html>
